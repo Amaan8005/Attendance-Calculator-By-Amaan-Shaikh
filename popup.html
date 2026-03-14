@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Tracker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f172a;
+            width: 600px;
+            /* Widened to fit the new simulator buttons and scrollbar */
+            padding: 16px;
+            color: #f8fafc;
+            margin: 0;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin: 0;
+            text-align: center;
+        }
+
+        h3 {
+            font-size: 1rem;
+            color: #94a3b8;
+            margin: 12px 0 8px 0;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 4px;
+        }
+
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .date-picker-container {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background-color: #1e293b;
+            color: #f8fafc;
+            font-family: inherit;
+            font-size: 0.875rem;
+            color-scheme: dark;
+        }
+
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 10px 8px;
+            font-size: 0.8rem;
+            border-bottom: 1px solid #334155;
+        }
+
+        th {
+            background-color: #0f172a;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #334155;
+        }
+
+        td:first-child {
+            max-width: 140px;
+            word-wrap:
+                break-word;
+            line-height: 1.2;
+        }
+
+        .percentage-good {
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .percentage-bad {
+            color: #f87171;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            text-align: center;
+            color: #94a3b8;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .error-container {
+            background-color: #450a0a;
+            color: #fca5a5;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            text-align: center;
+            border: 1px solid #7f1d1d;
+        }
+
+        /* Hide default number input arrows */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+            /* For Firefox */
+        }
+
+        /* Modern Custom Simulator Buttons */
+        .sim-control {
+            display: flex;
+            align-items: center;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .sim-btn {
+            background-color: transparent;
+            color: #94a3b8;
+            border: none;
+            padding: 4px 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            width: auto;
+            border-radius: 0;
+        }
+
+        .sim-btn:hover {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .sim-input {
+            width: 32px;
+            background-color: transparent !important;
+            border: none !important;
+            color: #f8fafc !important;
+            text-align: center;
+            font-weight: 600;
+            padding: 0;
+            outline: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Loading View -->
+        <div id="loadingView">
+            <div class="loading">Loading...</div>
+        </div>
+
+        <!-- Summary View -->
+        <div id="summaryView" class="hidden">
+            <h1>Attendance Summary</h1>
+            <button id="analyzeSummaryBtn">Analyze Summary</button>
+            <div id="results"></div>
+        </div>
+
+        <!-- Predictor View -->
+        <div id="predictorView" class="hidden">
+            <h1>Attendance Calculator</h1>
+            <div class="date-picker-container">
+                <input type="date" id="startDate" title="Start Date">
+                <input type="date" id="endDate" title="End Date">
+            </div>
+            <button id="calculateFutureBtn">Calculate Attendance</button>
+            <div id="predictorResults"></div>
+        </div>
+
+        <!-- Wrong Page View -->
+        <div id="wrongPageView" class="hidden">
+            <div class="error-container">
+                Please navigate to the "Attendance & Unit Test Report" or the "Itinerary Attendance Report" page.
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            Created by Amaan Shaikh
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+
+</html>
